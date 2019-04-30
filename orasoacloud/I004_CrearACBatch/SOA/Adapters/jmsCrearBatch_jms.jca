@@ -1,0 +1,13 @@
+<adapter-config name="jmsCrearBatch" adapter="jms" wsdlLocation="../WSDLs/jmsCrearBatch.wsdl" xmlns="http://platform.integration.oracle/blocks/adapter/fw/metadata">
+  
+  <connection-factory UIConnectionName="IntegratedWebLogicServer" location="eis/wls/Queue" UIJmsProvider="WLSJMS"/>
+  <endpoint-interaction portType="ProduceMjs_CrearBatch_ptt" operation="ProduceMjs_CrearBatch">
+    <interaction-spec className="oracle.tip.adapter.jms.outbound.JmsProduceInteractionSpec">
+      <property name="TimeToLive" value="0"/>
+      <property name="DestinationName" value="jms.batchAsientoContable"/>
+      <property name="DeliveryMode" value="Persistent"/>
+      <property name="PayloadType" value="TextMessage"/>
+    </interaction-spec>
+  </endpoint-interaction>
+
+</adapter-config>

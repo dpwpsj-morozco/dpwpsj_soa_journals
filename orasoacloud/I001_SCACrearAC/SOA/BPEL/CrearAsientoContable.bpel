@@ -1,0 +1,379 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Tue Oct 30 22:07:36 ECT 2018
+  Author:  david
+  Type: BPEL 2.0 Process
+  Purpose: Synchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="CrearAsientoContable"
+               targetNamespace="http://www.dpworld.com/SOA_DPWORLD/I001CrearAsientoContable"
+               xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+               xmlns:client="http://www.dpworld.com/SOA_DPWORLD/I001CrearAsientoContable"
+               xmlns:ora="http://schemas.oracle.com/xpath/extension"
+               xmlns:ui="http://xmlns.oracle.com/soa/designer"
+               xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:ns1="http://xmlns.oracle.com/apps/financials/generalLedger/journals/desktopEntry/journalImportService/"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap"
+         xmlns:ns2="http://www.dpworld.com/ProcesarAsientoContable"
+         xmlns:ns3="http://xmlns.oracle.com/apps/financials/generalLedger/journals/desktopEntry/journalImportService/types/"
+         xmlns:ns4="http://www.dpworld.com/SOA_DPWORLD/I003_BorrarAsientoContable"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <import ui:processWSDL="true" namespace="http://www.dpworld.com/SOA_DPWORLD/I001CrearAsientoContable"
+            location="../WSDL_SCA/CrearAsientoContable.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"/>
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    --> 
+  <partnerLinks>
+    <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="crearasientocontable" partnerLinkType="client:CrearAsientoContable" myRole="CrearAsientoContableProvider"/>
+    <partnerLink name="WS_JournalImportService" partnerLinkType="ns1:WS_JournalImportService"
+                 partnerRole="JournalImportService" myRole="JournalImportService"/>
+    <partnerLink name="ProcesasrAC" partnerLinkType="ns2:ProcesarAsientoContable"
+                 partnerRole="ProcesarAsientoContableProvider"/>
+    <partnerLink name="BorrarAC" partnerLinkType="ns4:BorrarAsientoContable"
+                 partnerRole="BorrarAsientoContableProvider" initializePartnerRole="yes"/>
+  </partnerLinks>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      VARIABLES                                                        
+      List of messages and XML documents used within this BPEL process 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <variables>
+    <!-- Reference to the message passed as input during initiation -->
+    <variable name="inputVariable" messageType="client:CrearAsientoContableRequest"/>
+
+    <!-- Reference to the message that will be returned to the requester-->
+    <variable name="outputVariable" messageType="client:CrearAsientoContableResponse"/>
+    <variable name="Request_CrearAC" messageType="ns1:JournalImportService_importJournals"/>
+    <variable name="Response_CrearAC" messageType="ns1:JournalImportService_importJournalsResponse"/>
+    <variable name="Request_ProcesarAsientoContable" messageType="ns2:ProcesarAsientoContableRequest"/>
+    <variable name="Response_ProcesarAsientoContable" messageType="ns2:ProcesarAsientoContableResponse"/>
+    <variable name="Request_BorrarAsientoContable" messageType="ns4:BorrarAsientoContableRequest"/>
+    <variable name="Response_BorrarAsientoContable" messageType="ns4:BorrarAsientoContableResponse"/>
+    <variable name="codError" type="xsd:string"/>
+    <variable name="descError" type="xsd:string"/>
+    <variable name="getError" type="xsd:string">
+      <from>''</from>
+    </variable>
+  </variables>
+  <faultHandlers>
+    <catchAll bpelx:name="CapturarErrores">
+      <sequence name="Sequence9">
+        <assign name="MapearRequestBorrarAC">
+          <bpelx:annotation>
+            <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+          </bpelx:annotation>
+          <copy>
+            <from>ora:doXSLTransformForDoc("../Transformations/MapearRequestBorrarAC.xsl", $inputVariable.payload)</from>
+            <to variable="Request_BorrarAsientoContable" part="payload"/>
+          </copy>
+        </assign>
+        <invoke name="BorrarAC" bpelx:invokeAsDetail="no" partnerLink="BorrarAC" portType="ns4:BorrarAsientoContable"
+                operation="BorrarAsientoContable" inputVariable="Request_BorrarAsientoContable"
+                outputVariable="Response_BorrarAsientoContable"/>
+        <assign name="MapearError">
+          <copy>
+            <from>'04'</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+          </copy>
+          <copy>
+            <from>$getError</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:descripcionErrorTec</to>
+          </copy>
+          <copy>
+            <from>'Error al procesar asiento contable - se elimina'</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+          </copy>
+        </assign>
+        <if name="ValidarError">
+          <documentation>
+            <![CDATA[ImprimirMensaje]]>
+          </documentation>
+          <condition>string-length($codError) &gt; 0</condition>
+          <empty name="NA"/>
+          <else>
+            <documentation>
+              <![CDATA[MesajeErrorGlobal]]>
+            </documentation>
+            <sequence>
+              <assign name="getErrorTecnico">
+                <copy>
+                  <from>ora:getFaultAsString()</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$getError</to>
+                </copy>
+                <copy>
+                  <from>$getError</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:descripcionErrorTec</to>
+                </copy>
+              </assign>
+              <assign name="MapearErrorGlobal">
+                <copy>
+                  <from>'03'</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+                </copy>
+                <copy>
+                  <from>'Se a producido un error'</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+                </copy>
+              </assign>
+            </sequence>
+          </else>
+        </if>
+        <assign name="MapearError">
+          <copy>
+            <from>$codError</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:codigoError</to>
+          </copy>
+          <copy>
+            <from>$descError</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:descrpcionError</to>
+          </copy>
+        </assign>
+        <reply name="Reply1" partnerLink="crearasientocontable" variable="outputVariable"
+               portType="client:CrearAsientoContable" operation="CrearAsientoContable"/>
+      </sequence>
+    </catchAll>
+  </faultHandlers>
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC                                               
+     Set of activities coordinating the flow of messages across the    
+     services integrated within this business process                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <sequence name="main">
+
+    <!-- Receive input from requestor. (Note: This maps to operation defined in CrearAsientoContable.wsdl) -->
+    <receive name="receiveInput" partnerLink="crearasientocontable" portType="client:CrearAsientoContable"
+             operation="CrearAsientoContable" variable="inputVariable" createInstance="yes"/>
+    <scope name="CrearAC">
+      <faultHandlers>
+        <catchAll>
+          <sequence name="Sequence12">
+            <assign name="getError">
+              <copy>
+                <from>'03'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+              </copy>
+              <copy>
+                <from>ora:getFaultAsString()</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$getError</to>
+              </copy>
+            </assign>
+            <rethrow name="Rethrow3"/>
+          </sequence>
+        </catchAll>
+      </faultHandlers>
+      <sequence name="Seq_CrearAC">
+        <assign name="Map_RequestCrearAC">
+          <bpelx:annotation>
+            <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+          </bpelx:annotation>
+          <copy>
+            <from>ora:doXSLTransformForDoc("../Transformations/MapRequestI001TOJournal.xsl", $inputVariable.payload)</from>
+            <to variable="Request_CrearAC" part="parameters"/>
+          </copy>
+        </assign>
+        <invoke name="CrearAC" partnerLink="WS_JournalImportService"
+                portType="ns1:JournalImportService" operation="importJournals" inputVariable="Request_CrearAC"
+                outputVariable="Response_CrearAC" bpelx:invokeAsDetail="no"/>
+      </sequence>
+    </scope>
+    <scope name="ProcesarAsientoCont">
+      <faultHandlers>
+        <catchAll>
+          <sequence name="Sequence11">
+            <assign name="getError">
+              <copy>
+                <from>ora:getFaultAsString()</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$getError</to>
+              </copy>
+              <copy>
+                <from>'03'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+              </copy>
+              <copy>
+                <from>'Se a producido un error'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+              </copy>
+              <copy>
+                <from>$getError</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:descripcionErrorTec</to>
+              </copy>
+            </assign>
+            <rethrow name="GetError"/>
+          </sequence>
+        </catchAll>
+      </faultHandlers>
+      <sequence>
+        <if name="IfProcesarAC">
+          <documentation>
+            <![CDATA[LlamarProcesarAC]]>
+          </documentation>
+          <condition>$Response_CrearAC.parameters/ns3:result = 0</condition>
+          <scope name="LlamarProcesarAC">
+            <faultHandlers>
+              <catch bpelx:name="ErrorTimeOut" faultName="bpelx:timeout">
+                <sequence name="Sequence4">
+                  <assign name="AsignarError">
+                    <copy>
+                      <from>'02'</from>
+                      <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+                    </copy>
+                    <copy>
+                      <from>'Fuera de tiempo - Llamada al servicio'</from>
+                      <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+                    </copy>
+                    <copy>
+                      <from>ora:getFaultAsString()</from>
+                      <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$getError</to>
+                    </copy>
+                  </assign>
+                  <rethrow name="Rethrow2"/>
+                </sequence>
+              </catch>
+            </faultHandlers>
+            <sequence name="SeqProcesarAC">
+              <if name="IfProcesarAC">
+                <condition>$inputVariable.payload/client:flag = '1'</condition>
+                <sequence>
+                  <assign name="MapearRequestProcesarAC">
+                    <bpelx:annotation>
+                      <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                    </bpelx:annotation>
+                    <copy>
+                      <from>ora:doXSLTransformForDoc("../Transformations/MapearRequestProcesarAC.xsl", $inputVariable.payload)</from>
+                      <to variable="Request_ProcesarAsientoContable" part="payload"/>
+                    </copy>
+                  </assign>
+                  <invoke name="ProcesarAC" bpelx:invokeAsDetail="no" partnerLink="ProcesasrAC"
+                          portType="ns2:ProcesarAsientoContable" operation="ProcesarAsientoContable"
+                          inputVariable="Request_ProcesarAsientoContable"
+                          outputVariable="Response_ProcesarAsientoContable"/>
+                  <if name="ValidarTransaccion">
+                    <documentation>
+                      <![CDATA[OKProcesarAC]]>
+                    </documentation>
+                    <condition>xp20:compare($Response_ProcesarAsientoContable.payload/ns2:codError,'00') &gt; -1</condition>
+                    <sequence>
+                      <empty name="ProcesarRepuesta"/>
+                    </sequence>
+                    <else>
+                      <documentation>
+                        <![CDATA[ProcesarBorrado]]>
+                      </documentation>
+                      <sequence name="Sequence7">
+                        <assign name="AsignarError">
+                          <copy>
+                            <from>'01'</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+                          </copy>
+                          <copy>
+                            <from>'Error al procesar'</from>
+                            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+                          </copy>
+                        </assign>
+                        <throw name="Excepcion" faultName="bpelx:assertFailure"/>
+                      </sequence>
+                    </else>
+                  </if>
+                </sequence>
+                <else>
+                  <empty name="Empty1"/>
+                </else>
+              </if>
+            </sequence>
+          </scope>
+          <else>
+            <documentation>
+              <![CDATA[NA]]>
+            </documentation>
+            <sequence name="SequenceErrorCrearAC">
+              <assign name="MapearError">
+                <copy>
+                  <from>'03'</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+                </copy>
+                <copy>
+                  <from>'Se a producido un error'</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+                </copy>
+                <copy>
+                  <from>ora:getFaultAsString()</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$getError</to>
+                </copy>
+              </assign>
+              <throw name="Excepcion" faultName="bpelx:assertFailure"/>
+            </sequence>
+          </else>
+        </if>
+        <assign name="MapearRespuesta">
+          <copy>
+            <from>'00'</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:codigoRespuesta</to>
+          </copy>
+          <copy>
+            <from>'00'</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:codigoError</to>
+          </copy>
+          <copy>
+            <from>'OK'</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:descrpcionError</to>
+          </copy>
+        </assign>
+      </sequence>
+    </scope>
+    <scope name="ValidarResponse">
+      <faultHandlers>
+        <catch bpelx:name="ValidarResponse" faultName="bpel:missingReply">
+          <sequence name="Sequence3">
+            <assign name="AsignarError">
+              <copy>
+                <from>'01'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+              </copy>
+              <copy>
+                <from>'Error Validacion Response'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+              </copy>
+              <copy>
+                <from>ora:getFaultAsString()</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$getError</to>
+              </copy>
+            </assign>
+            <empty name="ValidarResponse"/>
+          </sequence>
+        </catch>
+      </faultHandlers>
+      <validate name="ValidarResponse" variables="outputVariable"/>
+    </scope>
+    <!-- Generate reply to synchronous request -->
+    <reply name="replyOutput" partnerLink="crearasientocontable" portType="client:CrearAsientoContable"
+           operation="CrearAsientoContable" variable="outputVariable"/>
+  </sequence>
+</process>

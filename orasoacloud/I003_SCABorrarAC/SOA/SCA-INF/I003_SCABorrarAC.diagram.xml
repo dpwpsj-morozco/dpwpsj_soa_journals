@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dgm:gDiagram xmlns:dgm="http://xmlns.oracle.com/sca/soadgm">
+    <dgm:gService name="borrarasientocontable_ep">
+        <dgm:body borderWidth="2" arcRad="20" X="21" Y="41" width="137" height="84">
+            <dgm:borderColor r="153" g="153" b="153"/>
+            <dgm:bgColor r="255" g="255" b="255"/>
+        </dgm:body>
+        <dgm:shadow arcRad="20" X="11" Y="34" width="156" height="98">
+            <dgm:bgColor r="196" g="228" b="240"/>
+        </dgm:shadow>
+        <dgm:outputPort name="borrarasientocontable_ep" X="127" Y="0" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://www.dpworld.com/SOA_DPWORLD/I003_BorrarAsientoContable#wsdl.interface(BorrarAsientoContable)"/>
+        <dgm:nodeIcon URI="/oracle/tip/tools/ide/adapters/designtime/adapter/images/soap_service_20x20.png" X="20" Y="4" width="20" height="20"/>
+        <dgm:operations>
+            <dgm:item>BorrarAsientoContable</dgm:item>
+        </dgm:operations>
+    </dgm:gService>
+    <dgm:gReference name="ERPIntegrationService">
+        <dgm:body borderWidth="2" arcRad="20" X="816" Y="41" width="136" height="168">
+            <dgm:borderColor r="153" g="153" b="153"/>
+            <dgm:bgColor r="255" g="255" b="255"/>
+        </dgm:body>
+        <dgm:shadow arcRad="20" X="806" Y="34" width="156" height="182">
+            <dgm:bgColor r="196" g="228" b="240"/>
+        </dgm:shadow>
+        <dgm:inputPort name="ERPIntegrationService" X="-10" Y="0" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/#wsdl.interface(ErpIntegrationService)" callbackInterface="http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/#wsdl.interface(ErpIntegrationService)"/>
+        <dgm:nodeIcon URI="/oracle/tip/tools/ide/adapters/designtime/adapter/images/soap_service_20x20.png" X="27" Y="4" width="20" height="20"/>
+        <dgm:policyIcon URI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/locked_12x12.png" X="118" Y="8" width="12" height="12"/>
+        <dgm:operations>
+            <dgm:item>getESSJobStatus</dgm:item>
+            <dgm:item>getDfltObjAttrHints</dgm:item>
+            <dgm:item>getServiceLastUpdateTime</dgm:item>
+            <dgm:item>getEntityList</dgm:item>
+            <dgm:item>getEntityListAsync</dgm:item>
+            <dgm:item>getESSJobStatusAsync</dgm:item>
+            <dgm:item>getDfltObjAttrHintsAsync</dgm:item>
+            <dgm:item>getServiceLastUpdateTimeAsync</dgm:item>
+            <dgm:item>submitESSJobRequest</dgm:item>
+            <dgm:item>submitESSJobRequestAsync</dgm:item>
+            <dgm:item>submitJobWithOutput</dgm:item>
+            <dgm:item>submitJobWithOutputAsync</dgm:item>
+            <dgm:item>getDocumentIdsForFilePrefix</dgm:item>
+            <dgm:item>getDocumentIdsForFilePrefixAsync</dgm:item>
+            <dgm:item>getDocumentForDocumentId</dgm:item>
+            <dgm:item>getDocumentForDocumentIdAsync</dgm:item>
+            <dgm:item>getDocumentsForFilePrefix</dgm:item>
+            <dgm:item>getDocumentsForFilePrefixAsync</dgm:item>
+            <dgm:item>uploadFileToUcm</dgm:item>
+            <dgm:item>uploadFileToUcmAsync</dgm:item>
+            <dgm:item>downloadESSJobExecutionDetails</dgm:item>
+            <dgm:item>appendFileComment</dgm:item>
+            <dgm:item>appendFileCommentAsync</dgm:item>
+            <dgm:item>downloadESSJobExecutionDetailsAsync</dgm:item>
+            <dgm:item>downloadExportOutput</dgm:item>
+            <dgm:item>downloadExportOutputAsync</dgm:item>
+            <dgm:item>loadAndImportData</dgm:item>
+            <dgm:item>loadAndImportDataAsync</dgm:item>
+            <dgm:item>confirmExtractConsumption</dgm:item>
+            <dgm:item>confirmExtractConsumptionAsync</dgm:item>
+            <dgm:item>updateInterfaceData</dgm:item>
+            <dgm:item>updateInterfaceDataAsync</dgm:item>
+            <dgm:item>importBulkData</dgm:item>
+            <dgm:item>importBulkDataAsync</dgm:item>
+            <dgm:item>extractAndPurge</dgm:item>
+            <dgm:item>extractAndPurgeAsync</dgm:item>
+            <dgm:item>exportBulkData</dgm:item>
+            <dgm:item>exportBulkDataAsync</dgm:item>
+            <dgm:item>getESSJobStatus</dgm:item>
+            <dgm:item>getDfltObjAttrHints</dgm:item>
+            <dgm:item>getServiceLastUpdateTime</dgm:item>
+            <dgm:item>getEntityList</dgm:item>
+            <dgm:item>getEntityListAsync</dgm:item>
+            <dgm:item>getESSJobStatusAsync</dgm:item>
+            <dgm:item>getDfltObjAttrHintsAsync</dgm:item>
+            <dgm:item>getServiceLastUpdateTimeAsync</dgm:item>
+            <dgm:item>submitESSJobRequest</dgm:item>
+            <dgm:item>submitESSJobRequestAsync</dgm:item>
+            <dgm:item>submitJobWithOutput</dgm:item>
+            <dgm:item>submitJobWithOutputAsync</dgm:item>
+            <dgm:item>getDocumentIdsForFilePrefix</dgm:item>
+            <dgm:item>getDocumentIdsForFilePrefixAsync</dgm:item>
+            <dgm:item>getDocumentForDocumentId</dgm:item>
+            <dgm:item>getDocumentForDocumentIdAsync</dgm:item>
+            <dgm:item>getDocumentsForFilePrefix</dgm:item>
+            <dgm:item>getDocumentsForFilePrefixAsync</dgm:item>
+            <dgm:item>uploadFileToUcm</dgm:item>
+            <dgm:item>uploadFileToUcmAsync</dgm:item>
+            <dgm:item>downloadESSJobExecutionDetails</dgm:item>
+            <dgm:item>appendFileComment</dgm:item>
+            <dgm:item>appendFileCommentAsync</dgm:item>
+            <dgm:item>downloadESSJobExecutionDetailsAsync</dgm:item>
+            <dgm:item>downloadExportOutput</dgm:item>
+            <dgm:item>downloadExportOutputAsync</dgm:item>
+            <dgm:item>loadAndImportData</dgm:item>
+            <dgm:item>loadAndImportDataAsync</dgm:item>
+            <dgm:item>confirmExtractConsumption</dgm:item>
+            <dgm:item>confirmExtractConsumptionAsync</dgm:item>
+            <dgm:item>updateInterfaceData</dgm:item>
+            <dgm:item>updateInterfaceDataAsync</dgm:item>
+            <dgm:item>importBulkData</dgm:item>
+            <dgm:item>importBulkDataAsync</dgm:item>
+            <dgm:item>extractAndPurge</dgm:item>
+            <dgm:item>extractAndPurgeAsync</dgm:item>
+            <dgm:item>exportBulkData</dgm:item>
+            <dgm:item>exportBulkDataAsync</dgm:item>
+        </dgm:operations>
+    </dgm:gReference>
+    <dgm:gComponent name="BorrarAsientoContable">
+        <dgm:body borderWidth="2" arcRad="20" X="422" Y="26" width="130" height="61">
+            <dgm:borderColor r="69" g="113" b="140"/>
+            <dgm:lightBgColor r="166" g="208" b="230"/>
+            <dgm:darkBgColor r="99" g="162" b="201"/>
+        </dgm:body>
+        <dgm:shadow arcRad="20" X="412" Y="19" width="150" height="77">
+            <dgm:bgColor r="196" g="228" b="240"/>
+        </dgm:shadow>
+        <dgm:inputPort name="borrarasientocontable" X="-10" Y="15" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://www.dpworld.com/SOA_DPWORLD/I003_BorrarAsientoContable#wsdl.interface(BorrarAsientoContable)"/>
+        <dgm:outputPort name="ERPIntegrationService" X="120" Y="15" diameter="20" imageURI="oracle/tip/tools/ide/fabric/resource/image/visuals_rd1/servicereference.png" interface="http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/#wsdl.interface(ErpIntegrationService)" callbackInterface="http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/#wsdl.interface(ErpIntegrationService)"/>
+        <dgm:nodeIcon URI="/oracle/tip/tools/ide/bpel/shared/plugins/resources/images/soa/process_20x20.png" X="10" Y="4" width="20" height="20"/>
+    </dgm:gComponent>
+    <dgm:gWireLink source="borrarasientocontable_ep" target="BorrarAsientoContable/borrarasientocontable" width="2">
+        <dgm:gSegment X1="168" Y1="51" X2="412" Y2="51"/>
+        <dgm:baseColor r="153" g="153" b="153"/>
+        <dgm:selectedColor r="49" g="106" b="196"/>
+    </dgm:gWireLink>
+    <dgm:gWireLink source="BorrarAsientoContable/ERPIntegrationService" target="ERPIntegrationService" width="2">
+        <dgm:gSegment X1="562" Y1="51" X2="806" Y2="51"/>
+        <dgm:baseColor r="153" g="153" b="153"/>
+        <dgm:selectedColor r="49" g="106" b="196"/>
+    </dgm:gWireLink>
+</dgm:gDiagram>

@@ -1,0 +1,43 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Faults>
+   <Fault>
+      <severity>warning</severity>
+      <loc>/ns:composite/ns:reference[@name='ProcesasrAC']</loc>
+      <line>67</line>
+      <col>147</col>
+      <file>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I001_SCACrearAC\SOA\composite.xml</file>
+      <name>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I001_SCACrearAC\SOA\composite.xml</name>
+      <fix/>
+      <msg>Fallo al buscar el enlace "ProcesasrAC":"null" en el gestor de WSDL</msg>
+   </Fault>
+   <Fault>
+      <severity>warning</severity>
+      <loc>/ns:composite/ns:reference[@name='ProcesasrAC']</loc>
+      <line>67</line>
+      <col>147</col>
+      <file>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I001_SCACrearAC\SOA\composite.xml</file>
+      <name>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I001_SCACrearAC\SOA\composite.xml</name>
+      <fix/>
+      <msg>Fallo al buscar el enlace "ProcesasrAC":"null" en el gestor de WSDL</msg>
+   </Fault>
+   <Fault>
+      <severity>warning</severity>
+      <loc>/ns:composite/ns:reference[@name='BorrarAC']</loc>
+      <line>72</line>
+      <col>143</col>
+      <file>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I001_SCACrearAC\SOA\composite.xml</file>
+      <name>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I001_SCACrearAC\SOA\composite.xml</name>
+      <fix/>
+      <msg>Fallo al buscar el enlace "BorrarAC":"null" en el gestor de WSDL</msg>
+   </Fault>
+   <Fault>
+      <severity>warning</severity>
+      <loc>/ns:composite/ns:reference[@name='BorrarAC']</loc>
+      <line>72</line>
+      <col>143</col>
+      <file>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I001_SCACrearAC\SOA\composite.xml</file>
+      <name>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I001_SCACrearAC\SOA\composite.xml</name>
+      <fix/>
+      <msg>Fallo al buscar el enlace "BorrarAC":"null" en el gestor de WSDL</msg>
+   </Fault>
+</Faults>

@@ -1,0 +1,23 @@
+<?xml version= '1.0' encoding= 'UTF-8' ?>
+<schema attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="http://www.dpworld.com/SOA_DPWORLD/I003_BorrarAsientoContable"
+     xmlns="http://www.w3.org/2001/XMLSchema">
+    <element name="BorrarACRequest">
+        <complexType>
+            <sequence>
+                <element name="jobPackageName" type="string"/>
+                <element name="jobDefinitionName" type="string"/>
+                <element maxOccurs="unbounded" minOccurs="0" name="paramList" type="string"/>
+            </sequence>
+        </complexType>
+    </element>
+    <element name="BorrarACResponse">
+        <complexType>
+            <sequence>
+                <element name="codTransaccion" type="string"/>
+                <element name="descripcionTransaccion" minOccurs="0" type="string"/>
+                <element name="codError" minOccurs="0" type="string"/>
+                <element name="descripcionErrorTec" type="string"/>
+            </sequence>
+        </complexType>
+    </element>
+</schema>

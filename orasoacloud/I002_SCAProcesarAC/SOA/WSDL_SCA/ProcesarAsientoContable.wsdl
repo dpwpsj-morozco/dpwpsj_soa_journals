@@ -1,0 +1,31 @@
+<?xml version= '1.0' encoding= 'UTF-8' ?>
+<wsdl:definitions
+     name="ProcesarAsientoContable"
+     targetNamespace="http://www.dpworld.com/ProcesarAsientoContable"
+     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+     xmlns:client="http://www.dpworld.com/ProcesarAsientoContable"
+     xmlns:plnk="http://docs.oasis-open.org/wsbpel/2.0/plnktype"
+     xmlns:ns1="http://schemas.oracle.com/bpel/extension"
+    >
+    <plnk:partnerLinkType name="ProcesarAsientoContable">
+        <plnk:role name="ProcesarAsientoContableProvider" portType="client:ProcesarAsientoContable"/>
+    </plnk:partnerLinkType>
+    <wsdl:import namespace="http://schemas.oracle.com/bpel/extension" location="../WSDLs/RuntimeFault.wsdl"/>
+    <wsdl:types>
+        <schema xmlns="http://www.w3.org/2001/XMLSchema">
+            <import namespace="http://www.dpworld.com/ProcesarAsientoContable" schemaLocation="../Schema_SCA/ProcesarAsientoContable.xsd"/>
+        </schema>
+    </wsdl:types>
+    <wsdl:message name="ProcesarAsientoContableRequest">
+        <wsdl:part name="payload" element="client:ProcesarACRequest"/>
+    </wsdl:message>
+    <wsdl:message name="ProcesarAsientoContableResponse">
+        <wsdl:part name="payload" element="client:ProcesarACResponse"/>
+    </wsdl:message>
+    <wsdl:portType name="ProcesarAsientoContable">
+        <wsdl:operation name="ProcesarAsientoContable">
+            <wsdl:input message="client:ProcesarAsientoContableRequest"/>
+            <wsdl:output message="client:ProcesarAsientoContableResponse"/>
+        </wsdl:operation>
+    </wsdl:portType>
+</wsdl:definitions>

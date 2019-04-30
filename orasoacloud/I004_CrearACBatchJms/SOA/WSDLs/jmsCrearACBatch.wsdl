@@ -1,0 +1,29 @@
+<wsdl:definitions
+     name="jmsCrearACBatch"
+     targetNamespace="http://xmlns.oracle.com/pcbpel/adapter/jms/SOA_DPWORLD/I004_CrearACBatchJms/jmsCrearACBatch"
+     xmlns:tns="http://xmlns.oracle.com/pcbpel/adapter/jms/SOA_DPWORLD/I004_CrearACBatchJms/jmsCrearACBatch"
+     xmlns:jca="http://xmlns.oracle.com/pcbpel/wsdl/jca/"
+     xmlns:plt="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
+     xmlns:pc="http://xmlns.oracle.com/pcbpel/"
+     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+     xmlns:imp1="http://www.dpworld.com/I004_CrearACBatch/CrearACBatch"
+    >
+  <plt:partnerLinkType name="MsjCrearBatchJms_plt" >
+    <plt:role name="MsjCrearBatchJms_role" >
+      <plt:portType name="tns:MsjCrearBatchJms_ptt" />
+    </plt:role>
+  </plt:partnerLinkType>
+    <wsdl:types>
+      <schema xmlns="http://www.w3.org/2001/XMLSchema" >
+        <import namespace="http://www.dpworld.com/I004_CrearACBatch/CrearACBatch" schemaLocation="../Schemas/CrearACBatch.xsd" />
+      </schema>
+    </wsdl:types>
+    <wsdl:message name="MsjCrearBatchJms_msg">
+        <wsdl:part name="body" element="imp1:CrearACBatchRequest"/>
+    </wsdl:message>
+    <wsdl:portType name="MsjCrearBatchJms_ptt">
+        <wsdl:operation name="MsjCrearBatchJms">
+            <wsdl:input message="tns:MsjCrearBatchJms_msg"/>
+        </wsdl:operation>
+    </wsdl:portType>
+</wsdl:definitions>

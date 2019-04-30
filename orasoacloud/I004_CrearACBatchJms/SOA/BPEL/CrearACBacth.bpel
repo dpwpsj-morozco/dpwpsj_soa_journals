@@ -1,0 +1,571 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer
+
+  Created: Mon Nov 19 05:48:06 ECT 2018
+  Author:  david
+  Type: BPEL 2.0 Process
+  Purpose: Empty BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="CrearACBacth"
+               targetNamespace="http://www.dpworld.com/I004_CrearACBatchJms"
+               xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+               xmlns:client="http://www.dpworld.com/I004_CrearACBatchJms"
+               xmlns:ora="http://schemas.oracle.com/xpath/extension"
+               xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+               xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:ns1="http://xmlns.oracle.com/pcbpel/adapter/jms/SOA_DPWORLD/I004_CrearACBatchJms/jmsCrearACBatch"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:ns2="http://www.dpworld.com/I004_CrearACBatch/CrearACBatch"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:ns3="http://www.dpworld.com/SOA_DPWORLD/I001CrearAsientoContable"
+         xmlns:ui="http://xmlns.oracle.com/soa/designer">
+
+  <!--
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC
+     Set of activities coordinating the flow of messages across the
+     services integrated within this business process
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <import namespace="http://xmlns.oracle.com/pcbpel/adapter/jms/SOA_DPWORLD/I004_CrearACBatchJms/jmsCrearACBatch"
+          location="../WSDLs/jmsCrearACBatch.wsdl" importType="http://schemas.xmlsoap.org/wsdl/" ui:processWSDL="true"/>
+  <partnerLinks>
+    <partnerLink name="jmsCrearACBatch" partnerLinkType="ns1:MsjCrearBatchJms_plt" myRole="MsjCrearBatchJms_role"/>
+    <partnerLink name="I001_CrearAC" partnerLinkType="ns3:CrearAsientoContable"
+                 partnerRole="CrearAsientoContableProvider"/>
+  </partnerLinks>
+  <variables>
+    <variable name="InputVariableCrearACBatchJms" messageType="ns1:MsjCrearBatchJms_msg"/>
+    <variable name="Variable1" type="xsd:integer"/>
+    <variable name="InputI001CrearAC" messageType="ns3:CrearAsientoContableRequest"/>
+    <variable name="OutputI001CrearAC" messageType="ns3:CrearAsientoContableResponse"/>
+    <variable name="procesarAC" type="xsd:int"/>
+  </variables>
+  <sequence name="main">
+    <receive name="Receive1" createInstance="yes" partnerLink="jmsCrearACBatch" portType="ns1:MsjCrearBatchJms_ptt"
+             operation="MsjCrearBatchJms" variable="InputVariableCrearACBatchJms"/>
+    <assign name="Assign1">
+      <copy>
+        <from>ora:countNodes($InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive)</from>
+        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$Variable1</to>
+      </copy>
+    </assign>
+    <forEach parallel="no" counterName="index" name="ForMasive">
+      <startCounterValue>1</startCounterValue>
+      <finalCounterValue>ora:countNodes($InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive)</finalCounterValue>
+      <scope name="Scope1">
+        <sequence name="Sequence1">
+          <if name="ValidarProcesarAC">
+            <condition>$index=ora:countNodes($InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive)</condition>
+            <assign name="ProcesarAC_Ok">
+              <copy>
+                <from>1</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$procesarAC</to>
+              </copy>
+            </assign>
+            <else>
+              <assign name="ProcesaACNoOK">
+                <copy>
+                  <from>0</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$procesarAC</to>
+                </copy>
+              </assign>
+            </else>
+          </if>
+          <if name="If2">
+            <documentation>
+              <![CDATA[DrAmount]]>
+            </documentation>
+            <condition>count($InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:EnteredDrAmount)=1</condition>
+            <sequence>
+              <assign name="MapearRequestI001CrearAC">
+                <bpelx:annotation>
+                  <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                </bpelx:annotation>
+                <copy>
+                  <from>ora:doXSLTransformForDoc("../Transformations/MapearInputCrearACBatch.xsl", $InputVariableCrearACBatchJms.body)</from>
+                  <to variable="InputI001CrearAC" part="payload"/>
+                </copy>
+              </assign>
+              <assign name="AsignarElmentFor">
+                <copy>
+                  <from>$procesarAC</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:flag</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment1</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment1</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment2</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment2</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment3</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment3</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment4</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment4</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment5</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment5</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment6</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment6</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment7</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment7</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment8</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment8</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment9</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment9</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment10</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment10</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment11</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment11</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment12</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment12</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment13</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment13</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment14</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment14</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment15</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment15</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment16</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment16</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment17</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment17</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment18</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment18</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment19</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment19</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment20</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment20</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment21</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment21</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment22</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment22</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment23</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment23</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment24</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment24</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment25</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment25</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment26</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment26</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment27</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment27</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment28</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment28</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment29</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment29</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment30</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment30</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute1</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute1</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute2</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute2</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute3</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute3</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute4</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute4</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute5</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute5</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute6</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute6</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute7</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute7</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute8</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute8</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute9</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute9</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute10</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute10</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute11</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute11</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute12</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute12</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute13</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute13</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute14</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute14</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute15</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute15</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute16</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute16</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute17</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute17</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute18</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute18</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute19</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute19</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute20</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute20</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:CurrencyCode</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:CurrencyCode</to>
+                </copy>
+                <copy>
+                  <from>concat("",$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:EnteredDrAmount)</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:EnteredDrAmount</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:EnteredDrAmount/@currencyCode</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:EnteredDrAmount/@currencyCode</to>
+                </copy>
+                <copy>
+                  <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:CodeCombinationId</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:CodeCombinationId</to>
+                </copy>
+              </assign>
+            </sequence>
+            <else>
+              <documentation>
+                <![CDATA[CrAmount]]>
+              </documentation>
+              <sequence name="Sequence3">
+                <assign name="Transformation1">
+                  <bpelx:annotation>
+                    <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+                  </bpelx:annotation>
+                  <copy>
+                    <from>ora:doXSLTransformForDoc("../Transformations/MapearInputCrearACBatchCRA.xsl", $InputVariableCrearACBatchJms.body)</from>
+                    <to variable="InputI001CrearAC" part="payload"/>
+                  </copy>
+                </assign>
+                <assign name="AsignarElmentCRAmount">
+                  <copy>
+                    <from>$procesarAC</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:flag</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment1</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment1</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment2</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment2</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment3</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment3</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment4</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment4</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment5</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment5</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment6</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment6</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment7</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment7</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment8</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment8</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment9</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment9</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment10</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment10</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment11</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment11</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment12</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment12</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment13</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment13</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment14</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment14</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment15</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment15</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment16</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment16</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment17</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment17</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment18</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment18</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment19</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment19</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment20</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment20</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment21</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment21</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment22</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment22</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment23</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment23</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment24</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment24</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment25</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment25</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment26</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment26</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment27</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment27</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment28</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment28</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment29</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment29</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Segment30</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Segment30</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute1</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute1</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute2</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute2</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute3</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute3</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute4</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute4</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute5</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute5</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute6</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute6</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute7</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute7</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute8</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute8</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute9</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute9</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute10</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute10</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute11</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute11</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute12</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute12</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute13</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute13</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute14</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute14</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute15</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute15</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute16</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute16</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute17</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute17</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute18</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute18</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute19</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute19</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:Attribute20</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:Attribute20</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:CurrencyCode</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:CurrencyCode</to>
+                  </copy>
+                  <copy>
+                    <from>concat("",$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:EnteredCrAmount)</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:EnteredCrAmount</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:EnteredCrAmount/@currencyCode</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:EnteredCrAmount/@currencyCode</to>
+                  </copy>
+                  <copy>
+                    <from>$InputVariableCrearACBatchJms.body/ns2:Massives/ns2:Massive[$index]/ns2:CodeCombinationId</from>
+                    <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$InputI001CrearAC.payload/ns3:GlInterface/ns3:CodeCombinationId</to>
+                  </copy>
+                </assign>
+              </sequence>
+            </else>
+          </if>
+          <invoke name="I001_CrearAC" bpelx:invokeAsDetail="no" partnerLink="I001_CrearAC"
+                  portType="ns3:CrearAsientoContable" operation="CrearAsientoContable" inputVariable="InputI001CrearAC"
+                  outputVariable="OutputI001CrearAC"/>
+        </sequence>
+      </scope>
+    </forEach>
+  </sequence>
+</process>

@@ -1,0 +1,23 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<Faults>
+   <Fault>
+      <severity>warning</severity>
+      <loc>/ns:composite/ns:reference[@name='I001_CrearAC']</loc>
+      <line>41</line>
+      <col>141</col>
+      <file>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I004_CrearACBatchJms\SOA\composite.xml</file>
+      <name>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I004_CrearACBatchJms\SOA\composite.xml</name>
+      <fix/>
+      <msg>Fallo al buscar el enlace "I001_CrearAC":"null" en el gestor de WSDL</msg>
+   </Fault>
+   <Fault>
+      <severity>warning</severity>
+      <loc>/ns:composite/ns:reference[@name='I001_CrearAC']</loc>
+      <line>41</line>
+      <col>141</col>
+      <file>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I004_CrearACBatchJms\SOA\composite.xml</file>
+      <name>C:\Users\morozco\OneDrive - DP World\src\soa\orasoacloud\I004_CrearACBatchJms\SOA\composite.xml</name>
+      <fix/>
+      <msg>Fallo al buscar el enlace "I001_CrearAC":"null" en el gestor de WSDL</msg>
+   </Fault>
+</Faults>

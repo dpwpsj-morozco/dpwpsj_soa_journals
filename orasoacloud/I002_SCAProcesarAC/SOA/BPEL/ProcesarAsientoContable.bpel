@@ -1,0 +1,209 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Sat Oct 27 14:25:02 ECT 2018
+  Author:  david
+  Type: BPEL 2.0 Process
+  Purpose: Synchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="ProcesarAsientoContable"
+               targetNamespace="http://www.dpworld.com/ProcesarAsientoContable"
+               xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+               xmlns:client="http://www.dpworld.com/ProcesarAsientoContable"
+               xmlns:ora="http://schemas.oracle.com/xpath/extension"
+               xmlns:ui="http://xmlns.oracle.com/soa/designer"
+               xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:ns1="http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/"
+         xmlns:ns2="http://xmlns.oracle.com/apps/financials/commonModules/shared/model/erpIntegrationService/types/"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap">
+  <import namespace="http://schemas.oracle.com/bpel/extension" location="../WSDLs/RuntimeFault.wsdl"
+          importType="http://schemas.xmlsoap.org/wsdl/"/>
+  <import ui:processWSDL="true" namespace="http://www.dpworld.com/ProcesarAsientoContable"
+            location="../WSDL_SCA/ProcesarAsientoContable.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"/>
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    --> 
+  <partnerLinks>
+    <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="procesarasientocontableClient" partnerLinkType="client:ProcesarAsientoContable" myRole="ProcesarAsientoContableProvider"/>
+    <partnerLink name="WS_FscmServiceERP" partnerLinkType="ns1:WS_FscmServiceERP" partnerRole="ErpIntegrationService"
+                 myRole="ErpIntegrationService"/>
+  </partnerLinks>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      VARIABLES                                                        
+      List of messages and XML documents used within this BPEL process 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <variables>
+    <!-- Reference to the message passed as input during initiation -->
+    <variable name="inputVariable" messageType="client:ProcesarAsientoContableRequest"/>
+
+    <!-- Reference to the message that will be returned to the requester-->
+    <variable name="outputVariable" messageType="client:ProcesarAsientoContableResponse"/>
+    <variable name="Request_ProcesarAC" messageType="ns1:ErpIntegrationService_submitESSJobRequest"/>
+    <variable name="Response_ProcesarAC" messageType="ns1:ErpIntegrationService_submitESSJobRequestResponse"/>
+    <variable name="codError" type="xsd:string"/>
+    <variable name="descError" type="xsd:string"/>
+    <variable name="getError" type="xsd:string">
+      <from>''</from>
+    </variable>
+  </variables>
+  <faultHandlers>
+    <catchAll bpelx:name="ValidarErrores">
+      <sequence name="Sequence2">
+        <if name="ValidarError">
+          <documentation>
+            <![CDATA[Mensaje]]>
+          </documentation>
+          <condition>string-length($codError) &gt; 0</condition>
+          <empty name="NA"/>
+          <else>
+            <documentation>
+              <![CDATA[MensajeErrorGlobal]]>
+            </documentation>
+            <assign name="ErrorDefault">
+              <copy>
+                <from>'03'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+              </copy>
+              <copy>
+                <from>'Se a producido un error'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+              </copy>
+              <copy>
+                <from>ora:getFaultAsString()</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$getError</to>
+              </copy>
+              <copy>
+                <from>$getError</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:descripcionErrorTec</to>
+              </copy>
+            </assign>
+          </else>
+        </if>
+        <assign name="MapearError">
+          <copy>
+            <from>$codError</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:codError</to>
+          </copy>
+          <copy>
+            <from>$descError</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:descripcionTransaccion</to>
+          </copy>
+        </assign>
+        <reply name="ResponderError" partnerLink="procesarasientocontableClient" variable="outputVariable"
+               portType="client:ProcesarAsientoContable" operation="ProcesarAsientoContable"/>
+      </sequence>
+    </catchAll>
+  </faultHandlers>
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC                                               
+     Set of activities coordinating the flow of messages across the    
+     services integrated within this business process                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <sequence name="main">
+
+    <!-- Receive input from requestor. (Note: This maps to operation defined in ProcesarAsientoContable.wsdl) -->
+    <receive name="receiveInput" partnerLink="procesarasientocontableClient" portType="client:ProcesarAsientoContable"
+             operation="ProcesarAsientoContable" variable="inputVariable" createInstance="yes"/>
+    <scope name="ProcesarAsientoContable">
+      <faultHandlers>
+        <catch bpelx:name="TimeOutServicio" faultName="bpelx:timeout">
+          <sequence>
+            <assign name="AsignarErrorTimeOut">
+              <copy>
+                <from>'02'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+              </copy>
+              <copy>
+                <from>'Fuera de tiempo - Llamada al servicio'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+              </copy>
+              <copy>
+                <from>ora:getFaultAsString()</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$getError</to>
+              </copy>
+            </assign>
+            <rethrow name="Rethrow2"/>
+          </sequence>
+        </catch>
+      </faultHandlers>
+      <sequence name="Seq_ProcesarAsientoContable">
+        <assign name="MapRequest">
+          <bpelx:annotation>
+            <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+          </bpelx:annotation>
+          <copy>
+            <from>ora:doXSLTransformForDoc("../Transformations/MapRequestoERPWS.xsl", $inputVariable.payload)</from>
+            <to variable="Request_ProcesarAC" part="parameters"/>
+          </copy>
+        </assign>
+        <invoke name="Ope_ProcesarAC" partnerLink="WS_FscmServiceERP" portType="ns1:ErpIntegrationService"
+                operation="submitESSJobRequest" inputVariable="Request_ProcesarAC" outputVariable="Response_ProcesarAC"
+                bpelx:invokeAsDetail="no"/>
+        <assign name="MapResponse">
+          <copy>
+            <from>$Response_ProcesarAC.parameters/ns2:result</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:codTransaccion</to>
+          </copy>
+          <copy>
+            <from>'00'</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:codError</to>
+          </copy>
+        </assign>
+      </sequence>
+    </scope>
+    <scope name="ValidarResponse">
+      <faultHandlers>
+        <catch bpelx:name="ValidarResponse" faultName="bpel:missingReply">
+          <sequence name="SeqValidarResponse">
+            <assign name="ValidarResponse">
+              <copy>
+                <from>'02'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codError</to>
+              </copy>
+              <copy>
+                <from>'Error Validacion Response'</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descError</to>
+              </copy>
+              <copy>
+                <from>ora:getFaultAsString()</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$getError</to>
+              </copy>
+            </assign>
+            <rethrow name="Rethrow3"/>
+          </sequence>
+        </catch>
+      </faultHandlers>
+      <validate name="ValidarResponse" variables="outputVariable"/>
+    </scope>
+    <!-- Generate reply to synchronous request -->
+    <reply name="replyOutput" partnerLink="procesarasientocontableClient" portType="client:ProcesarAsientoContable"
+           operation="ProcesarAsientoContable" variable="outputVariable"/>
+  </sequence>
+</process>

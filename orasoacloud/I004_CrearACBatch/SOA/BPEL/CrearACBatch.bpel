@@ -1,0 +1,177 @@
+<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  Oracle JDeveloper BPEL Designer 
+  
+  Created: Mon Nov 12 09:26:20 COT 2018
+  Author:  Q2025335
+  Type: BPEL 2.0 Process
+  Purpose: Synchronous BPEL Process
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+-->
+<process name="CrearACBatch"
+               targetNamespace="http://www.dpworld.com/I004_CrearACBatch/CrearACBatch"
+               xmlns="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+               xmlns:client="http://www.dpworld.com/I004_CrearACBatch/CrearACBatch"
+               xmlns:ora="http://schemas.oracle.com/xpath/extension"
+               xmlns:ui="http://xmlns.oracle.com/soa/designer"
+               xmlns:bpelx="http://schemas.oracle.com/bpel/extension"
+         xmlns:bpel="http://docs.oasis-open.org/wsbpel/2.0/process/executable"
+         xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+         xmlns:oraext="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.ExtFunc"
+         xmlns:bpm="http://xmlns.oracle.com/bpmn20/extensions"
+         xmlns:xp20="http://www.oracle.com/XSL/Transform/java/oracle.tip.pc.services.functions.Xpath20"
+         xmlns:ess="http://xmlns.oracle.com/scheduler" xmlns:hwf="http://xmlns.oracle.com/bpel/workflow/xpath"
+         xmlns:xref="http://www.oracle.com/XSL/Transform/java/oracle.tip.xref.xpath.XRefXPathFunctions"
+         xmlns:dvm="http://www.oracle.com/XSL/Transform/java/oracle.tip.dvm.LookupValue"
+         xmlns:bpws="http://schemas.xmlsoap.org/ws/2003/03/business-process/"
+         xmlns:xdk="http://schemas.oracle.com/bpel/extension/xpath/function/xdk"
+         xmlns:ids="http://xmlns.oracle.com/bpel/services/IdentityService/xpath"
+         xmlns:ldap="http://schemas.oracle.com/xpath/extension/ldap"
+         xmlns:ns1="http://xmlns.oracle.com/pcbpel/adapter/jms/ServiceBusApplication/I004_CrearACBatch/jmsReference"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:ns2="http://xmlns.oracle.com/pcbpel/adapter/jms/SOA_DPWORLD/I004_CrearACBatch/jmsCrearBatch">
+
+    <import ui:processWSDL="true" namespace="http://www.dpworld.com/I004_CrearACBatch/CrearACBatch" location="../WSDLs/CrearACBatch.wsdl" importType="http://schemas.xmlsoap.org/wsdl/"/>
+    <!-- 
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        PARTNERLINKS                                                      
+        List of services participating in this BPEL process               
+      ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    --> 
+  <partnerLinks>
+    <!-- 
+      The 'client' role represents the requester of this service. It is 
+      used for callback. The location and correlation information associated
+      with the client role are automatically set using WS-Addressing.
+    -->
+    <partnerLink name="crearac" partnerLinkType="client:CrearACBatch" myRole="CrearACBatchProvider"/>
+    <partnerLink name="jmsCrearBatch" partnerLinkType="ns2:ProduceMjs_CrearBatch_plt"
+                 partnerRole="ProduceMjs_CrearBatch_role"/>
+  </partnerLinks>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      VARIABLES                                                        
+      List of messages and XML documents used within this BPEL process 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <variables>
+    <!-- Reference to the message passed as input during initiation -->
+    <variable name="inputVariable" messageType="client:CrearACBatchRequest"/>
+
+    <!-- Reference to the message that will be returned to the requester-->
+    <variable name="outputVariable" messageType="client:CrearACBatchResponse"/>
+    <variable name="sumatoria" type="xsd:double">
+      <from>0.0</from>
+    </variable>
+    <variable name="ingresos" type="xsd:double">
+      <from>0.0</from>
+    </variable>
+    <variable name="test" type="xsd:int"/>
+    <variable name="egreso" type="xsd:double">
+      <from>0.0</from>
+    </variable>
+    <variable name="InputCrearBatch" messageType="ns2:ProduceMjs_CrearBatch_msg"/>
+    <variable name="codigoTransaccion" type="xsd:string"/>
+    <variable name="descripcionTransaccion" type="xsd:string"/>
+  </variables>
+
+  <!-- 
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     ORCHESTRATION LOGIC                                               
+     Set of activities coordinating the flow of messages across the    
+     services integrated within this business process                  
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  -->
+  <sequence name="main">
+
+    <!-- Receive input from requestor. (Note: This maps to operation defined in CrearACBatch.wsdl) -->
+    <receive name="receiveInput" partnerLink="crearac" portType="client:CrearACBatch" operation="CrearACBatch" variable="inputVariable" createInstance="yes"/>
+    <forEach parallel="no" counterName="index" name="ForEachCaudreAC">
+      <startCounterValue>1</startCounterValue>
+      <finalCounterValue>ora:countNodes($inputVariable.payload/client:Massives/client:Massive)</finalCounterValue>
+      <scope name="Scope1">
+        <sequence>
+          <if name="IfValidarIE">
+            <condition>count($inputVariable.payload/client:Massives/client:Massive[$index]/client:EnteredDrAmount)=1</condition>
+            <assign name="CalcularAsientoCOntable">
+              <copy>
+                <from>$egreso+(translate($inputVariable.payload/client:Massives/client:Massive[$index]/client:EnteredDrAmount,',','.')*100)</from>
+                <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$egreso</to>
+              </copy>
+            </assign>
+            <elseif>
+              <condition>count($inputVariable.payload/client:Massives/client:Massive[$index]/client:EnteredDrAmount)=0</condition>
+              <assign name="CalcularAC">
+                <copy>
+                  <from>$ingresos+(translate($inputVariable.payload/client:Massives/client:Massive[$index]/client:EnteredCrAmount,',','.')*100)</from>
+                  <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$ingresos</to>
+                </copy>
+              </assign>
+            </elseif>
+          </if>
+        </sequence>
+      </scope>
+    </forEach>
+    <if name="IfValidarCuadreAC">
+      <documentation>
+        <![CDATA[Ok_CuadreAC]]>
+      </documentation>
+      <condition>($ingresos - $egreso) = 0</condition>
+      <sequence name="Sequence1">
+        <assign name="MapeoI004ToJms">
+          <bpelx:annotation>
+            <bpelx:pattern patternName="bpelx:transformation"></bpelx:pattern>
+          </bpelx:annotation>
+          <copy>
+            <from>ora:doXSLTransformForDoc("../Transformations/MapearSCAtoJms.xsl", $inputVariable.payload)</from>
+            <to variable="InputCrearBatch" part="body"/>
+          </copy>
+        </assign>
+        <invoke name="PutMsj_BatchCrearAC" bpelx:invokeAsDetail="no" partnerLink="jmsCrearBatch"
+                portType="ns2:ProduceMjs_CrearBatch_ptt" operation="ProduceMjs_CrearBatch"
+                inputVariable="InputCrearBatch"/>
+        <assign name="ASignarRespuesta">
+          <copy>
+            <from>'0'</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codigoTransaccion</to>
+          </copy>
+          <copy>
+            <from>'OK'</from>
+            <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descripcionTransaccion</to>
+          </copy>
+        </assign>
+      </sequence>
+      <else>
+        <documentation>
+          <![CDATA[NoOK_CuadreAC]]>
+        </documentation>
+        <sequence name="Sequence2">
+          <assign name="AsignarRespuesta">
+            <copy>
+              <from>'1'</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$codigoTransaccion</to>
+            </copy>
+            <copy>
+              <from>'Error al realizar cuadre de asiento contable'</from>
+              <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$descripcionTransaccion</to>
+            </copy>
+          </assign>
+        </sequence>
+      </else>
+    </if>
+    <assign name="RespuestaValidarAsiento">
+      <copy>
+        <from>$codigoTransaccion</from>
+        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:codTransaccion</to>
+      </copy>
+      <copy>
+        <from>$descripcionTransaccion</from>
+        <to expressionLanguage="urn:oasis:names:tc:wsbpel:2.0:sublang:xpath1.0">$outputVariable.payload/client:descripcionTransaccion</to>
+      </copy>
+    </assign>
+    <!-- Generate reply to synchronous request -->
+    <reply name="replyOutput" partnerLink="crearac" portType="client:CrearACBatch" operation="CrearACBatch" variable="outputVariable"/>
+  </sequence>
+</process>
