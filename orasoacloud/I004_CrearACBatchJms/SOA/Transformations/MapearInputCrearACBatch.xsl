@@ -16,7 +16,7 @@
       </oracle-xsl-mapper:mapSources>
       <oracle-xsl-mapper:mapTargets>
          <oracle-xsl-mapper:target type="WSDL">
-            <oracle-xsl-mapper:schema location="http://129.150.116.226:9073/soa-infra/services/default/I001_SCACrearAC/crearasientocontable_ep?WSDL"/>
+            <oracle-xsl-mapper:schema location="http://129.213.136.94:9073/soa-infra/services/default/I001_SCACrearAC/crearasientocontable_ep?WSDL"/>
             <oracle-xsl-mapper:rootElement name="CrearACRequest" namespace="http://www.dpworld.com/SOA_DPWORLD/I001CrearAsientoContable"/>
          </oracle-xsl-mapper:target>
       </oracle-xsl-mapper:mapTargets>
